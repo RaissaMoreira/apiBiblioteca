@@ -1,0 +1,27 @@
+{
+  "name": "web",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "tsc && node ./dist/index.js",
+    "dev": "tsnd --transpile-only --ignore-watch node_modules ./src/index.ts",
+    "build": "tsc",
+    "migrations": "tsnd ./src/data/migrations.ts",
+    "apiDados": "json-server --watch db/db.json --port 5555"
+  },
+  "keywords": [],
+  "author": "Raissa Moreira",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "joi": "^17.13.3"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "json-server": "^1.0.0-beta.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.5.4"
+  }
+}
