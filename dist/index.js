@@ -1,25 +1,74 @@
 "use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
-const db_1 = require("./db");
 const validations_1 = require("./validations");
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
+let users = [];
+let locacoes = [];
+let livros = [];
+function getLivros() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const req = yield fetch('http://localhost:5555/livros', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+        });
+        const data = yield req.json();
+        return data;
+    });
+}
+function getUsers() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const req = yield fetch('http://localhost:5555/users', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+        });
+        const data = yield req.json();
+        return data;
+    });
+}
+function getLocacoes() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const req = yield fetch('http://localhost:5555/locacoes', {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' },
+        });
+        const data = yield req.json();
+        return data;
+    });
+}
+function initializeData() {
+    return __awaiter(this, void 0, void 0, function* () {
+        users = yield getUsers();
+        livros = yield getLivros();
+        locacoes = yield getLocacoes();
+        console.log('users = ', users);
+    });
+}
 app.get('/bib/user', (req, res) => {
     var _a;
-    (_a = res === null || res === void 0 ? void 0 : res.status(200)) === null || _a === void 0 ? void 0 : _a.json(db_1.users);
+    (_a = res === null || res === void 0 ? void 0 : res.status(200)) === null || _a === void 0 ? void 0 : _a.json(users);
 });
 app.get('/bib/livro', (req, res) => {
     var _a;
-    (_a = res === null || res === void 0 ? void 0 : res.status(200)) === null || _a === void 0 ? void 0 : _a.json(db_1.livros);
+    (_a = res === null || res === void 0 ? void 0 : res.status(200)) === null || _a === void 0 ? void 0 : _a.json(livros);
 });
 app.get('/bib/livro/:id', (req, res) => {
     var _a, _b;
     const id = Number(req.params.id);
-    const livro = db_1.livros === null || db_1.livros === void 0 ? void 0 : db_1.livros.find((item) => (item === null || item === void 0 ? void 0 : item.id_book) === id);
+    const livro = livros === null || livros === void 0 ? void 0 : livros.find((item) => (item === null || item === void 0 ? void 0 : item.id_book) === id);
     if (!livro) {
         return (_a = res === null || res === void 0 ? void 0 : res.status(404)) === null || _a === void 0 ? void 0 : _a.send({
             mensagem: 'Não existe um livro para o ID informado!',
@@ -28,9 +77,9 @@ app.get('/bib/livro/:id', (req, res) => {
     (_b = res === null || res === void 0 ? void 0 : res.status(200)) === null || _b === void 0 ? void 0 : _b.json(livro);
 });
 app.get('/bib/locar', (req, res) => {
-    const newListLoc = db_1.locacoes === null || db_1.locacoes === void 0 ? void 0 : db_1.locacoes.map((loc) => {
-        const userName = db_1.users === null || db_1.users === void 0 ? void 0 : db_1.users.find((user) => (user === null || user === void 0 ? void 0 : user.id_user) == (loc === null || loc === void 0 ? void 0 : loc.id_user));
-        const bookName = db_1.livros === null || db_1.livros === void 0 ? void 0 : db_1.livros.find((livro) => (livro === null || livro === void 0 ? void 0 : livro.id_book) == (loc === null || loc === void 0 ? void 0 : loc.id_livro));
+    const newListLoc = locacoes === null || locacoes === void 0 ? void 0 : locacoes.map((loc) => {
+        const userName = users === null || users === void 0 ? void 0 : users.find((user) => (user === null || user === void 0 ? void 0 : user.id_user) == (loc === null || loc === void 0 ? void 0 : loc.id_user));
+        const bookName = livros === null || livros === void 0 ? void 0 : livros.find((livro) => (livro === null || livro === void 0 ? void 0 : livro.id_book) == (loc === null || loc === void 0 ? void 0 : loc.id_livro));
         return {
             id_user: loc === null || loc === void 0 ? void 0 : loc.id_user,
             nome_usuario: userName ? userName === null || userName === void 0 ? void 0 : userName.nome : 'Usuário não encontrado',
@@ -44,7 +93,7 @@ app.get('/bib/locar', (req, res) => {
 app.put('/bib/livro/:id', (req, res) => {
     var _a, _b;
     const id = Number(req.params.id);
-    let livro = db_1.livros === null || db_1.livros === void 0 ? void 0 : db_1.livros.find((item) => (item === null || item === void 0 ? void 0 : item.id_book) === id);
+    let livro = livros === null || livros === void 0 ? void 0 : livros.find((item) => (item === null || item === void 0 ? void 0 : item.id_book) === id);
     if (!livro) {
         return (_a = res === null || res === void 0 ? void 0 : res.status(404)) === null || _a === void 0 ? void 0 : _a.send({
             mensagem: 'Não existe um livro para o ID informado!',
@@ -58,7 +107,7 @@ app.put('/bib/livro/:id', (req, res) => {
         });
     }
     // console.log('livroAlterado == ', livroAlterado);
-    const newLivros = db_1.livros === null || db_1.livros === void 0 ? void 0 : db_1.livros.map((el) => (el === null || el === void 0 ? void 0 : el.id_book) === id ? livroAlterado : el);
+    const newLivros = livros === null || livros === void 0 ? void 0 : livros.map((el) => (el === null || el === void 0 ? void 0 : el.id_book) === id ? livroAlterado : el);
     // const campos = Object.keys(livroAlterado) as Array<keyof ILivros>;
     // for (let c of campos) {
     //   console.log('C == ', c);
@@ -70,13 +119,13 @@ app.put('/bib/livro/:id', (req, res) => {
 app.delete('/bib/user/:id', (req, res) => {
     var _a, _b;
     const id = Number(req.params.id);
-    const userIndice = db_1.users === null || db_1.users === void 0 ? void 0 : db_1.users.findIndex((user) => (user === null || user === void 0 ? void 0 : user.id_user) === id);
+    const userIndice = users === null || users === void 0 ? void 0 : users.findIndex((user) => (user === null || user === void 0 ? void 0 : user.id_user) === id);
     if (userIndice < 0) {
         return (_a = res === null || res === void 0 ? void 0 : res.status(404)) === null || _a === void 0 ? void 0 : _a.send({
             mensagem: 'Não existe um usuário para o ID informado!',
         });
     }
-    const removerUsuario = db_1.users === null || db_1.users === void 0 ? void 0 : db_1.users.splice(userIndice, 1);
+    const removerUsuario = users === null || users === void 0 ? void 0 : users.splice(userIndice, 1);
     (_b = res === null || res === void 0 ? void 0 : res.status(200)) === null || _b === void 0 ? void 0 : _b.json(removerUsuario);
 });
 app.post('/bib/user', (req, res) => {
@@ -88,7 +137,7 @@ app.post('/bib/user', (req, res) => {
             mens: error.details[0].message,
         });
     }
-    db_1.users.push(newUser);
+    users.push(newUser);
     (_a = res === null || res === void 0 ? void 0 : res.status(200)) === null || _a === void 0 ? void 0 : _a.send(newUser);
 });
 app.post('/bib/livro', (req, res) => {
@@ -100,7 +149,7 @@ app.post('/bib/livro', (req, res) => {
             mens: (_a = error.details) === null || _a === void 0 ? void 0 : _a[0].message,
         });
     }
-    db_1.livros.push(newBook);
+    livros.push(newBook);
     (_b = res === null || res === void 0 ? void 0 : res.status(200)) === null || _b === void 0 ? void 0 : _b.send(newBook);
 });
 app.post('/bib/locar', (req, res) => {
@@ -112,7 +161,9 @@ app.post('/bib/locar', (req, res) => {
             mens: error.details[0].message,
         });
     }
-    db_1.locacoes.push(newLoc);
+    locacoes.push(newLoc);
     (_a = res === null || res === void 0 ? void 0 : res.status(200)) === null || _a === void 0 ? void 0 : _a.send(newLoc);
 });
-app.listen(3333, () => console.log('BIBLIOTECA - API WEB executando'));
+initializeData().then(() => {
+    app.listen(3333, () => console.log('BIBLIOTECA - API WEB executando'));
+});

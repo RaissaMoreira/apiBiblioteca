@@ -1,5 +1,5 @@
 import express from 'express';
-import { livros, locacoes, users } from './db';
+
 import { ILivros, ILocacoes, IUsers } from './types';
 import {
   livroModel,
@@ -10,6 +10,10 @@ import {
 
 const app = express();
 app.use(express.json());
+
+let users: IUsers[] = [];
+let locacoes: ILocacoes[] = [];
+let livros: ILivros[] = [];
 
 async function getLivros() {
   const req = await fetch('http://localhost:5555/livros', {
@@ -34,6 +38,12 @@ async function getLocacoes() {
   });
   const data = await req.json();
   return data;
+}
+
+async function initializeData() {
+  users = await getUsers();
+  livros = await getLivros();
+  locacoes = await getLocacoes();
 }
 
 app.get('/bib/user', (req, res) => {
@@ -70,7 +80,7 @@ app.get('/bib/locar', (req, res) => {
 
   res.status(200).json(newListLoc);
 });
-app.put('/bib/livro/:id', (req, res) => {
+app.put('/bib/livro/:id', async (req, res) => {
   const id = Number(req.params.id);
   let livro = livros?.find((item: ILivros) => item?.id_book === id);
 
@@ -89,19 +99,31 @@ app.put('/bib/livro/:id', (req, res) => {
     });
   }
 
-  // console.log('livroAlterado == ', livroAlterado);
-
   const newLivros = livros?.map((el) =>
     el?.id_book === id ? livroAlterado : el,
   );
 
-  // const campos = Object.keys(livroAlterado) as Array<keyof ILivros>;
+  try {
+    const req = await fetch(`http://localhost:5555/livros/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(livroAlterado),
+    });
 
-  // for (let c of campos) {
-  //   console.log('C == ', c);
-  //   console.log('livro == ', livro);
-  //   livro[c] = livroAlterado[c];
-  // }
+    const response = await req.json();
+
+    if (!response?.ok) {
+      return res.status(response?.status).send({
+        mensagem: 'Erro ao atualizar o livro na API externa.',
+      });
+    }
+  } catch (error) {
+    return res?.status(500).send({
+      mensagem: 'Falha na comunicação com a API externa.',
+    });
+  }
 
   res?.status(200)?.json(newLivros);
 });
@@ -157,4 +179,7 @@ app.post('/bib/locar', (req, res) => {
   locacoes.push(newLoc);
   res?.status(200)?.send(newLoc);
 });
-app.listen(3333, () => console.log('BIBLIOTECA - API WEB executando'));
+
+initializeData().then(() => {
+  app.listen(3333, () => console.log('BIBLIOTECA - API WEB executando'));
+});
