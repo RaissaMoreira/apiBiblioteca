@@ -1,5 +1,4 @@
 import express from 'express';
-import { readItems } from '../src/crud';
 import db from './database';
 
 const app = express();
@@ -42,13 +41,17 @@ app.use(express.json());
 //   }
 // });
 app.get('/bib/livro', async (req, res) => {
-  readItems((err: any, rows: any) => {
-    if (err) {
-      res.status(500).send({ mensagem: err.message });
-    } else {
-      res.status(200).json(rows);
-    }
-  });
+  try {
+    db.all('SELECT * FROM livros', [], (err: any, rows: any) => {
+      if (err) {
+        res.status(500).send({ mensagem: err.message });
+      } else {
+        res.status(200).json(rows);
+      }
+    });
+  } catch (error) {
+    res.status(500).send({ mensagem: 'Erro ao buscar livros.', error });
+  }
 });
 
 // app.get('/bib/livro/:id', async (req, res) => {
