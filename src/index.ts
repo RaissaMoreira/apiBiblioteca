@@ -85,10 +85,10 @@ app.delete('/bib/locar/:id', async (req, res) => {
 
   deleteLocacoes(id, (err) => {
     if (err) {
-      res.status(500).send({ mensagem: 'Erro ao excluir o usuário.' });
+      res.status(500).send({ mensagem: 'Erro ao excluir a locação.' });
     }
     
-    res.status(200).send({ mensagem: 'Usuário excluído com sucesso.' });
+    res.status(200).send({ mensagem: 'Locação excluída com sucesso.' });
   });
 });
 
@@ -100,7 +100,7 @@ app.delete('/bib/livro/:id', async (req, res) => {
       res.status(500).send({ mensagem: 'Erro ao excluir o livro.' });
     }
     
-    res.status(200).send({ mensagem: 'Usuário excluído com sucesso.' });
+    res.status(200).send({ mensagem: 'Livro excluído com sucesso.' });
   });
 });
 

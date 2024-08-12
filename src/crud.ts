@@ -79,16 +79,16 @@ export const updateLivro = (
 
 // DELETE
 export const deleteUsers = (id: number, callback: QueryCallback) => {
-  const sql = 'DELETE * FROM users WHERE id_user = ?';
+  const sql = 'DELETE FROM users WHERE id_user = ?';
   db.run(sql, id, callback);
 };
 
 export const deleteLivros = (id: number, callback: QueryCallback) => {
-  const sql = 'DELETE * FROM livros WHERE id_livro = ?';
+  const sql = 'DELETE FROM livros WHERE id_livro = ?';
   db.run(sql, id, callback);
 };
 
 export const deleteLocacoes = (id: number, callback: QueryCallback) => {
-  const sql = 'DELETE * FROM locacoes WHERE id_user = ?';
+  const sql = 'DELETE FROM locacoes WHERE id_livro = ?';
   db.run(sql, id, callback);
 };
