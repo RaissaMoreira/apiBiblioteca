@@ -1,5 +1,5 @@
 CREATE TABLE livros (
-    id_book INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_livro INTEGER PRIMARY KEY AUTOINCREMENT,
     titulo TEXT NOT NULL,
     isbn TEXT NOT NULL,
     edicao TEXT NOT NULL,
@@ -19,5 +19,5 @@ CREATE TABLE locacoes (
     status BOOLEAN NOT NULL DEFAULT 0,
     PRIMARY KEY (id_user, id_livro),
     FOREIGN KEY (id_user) REFERENCES users(id_user),
-    FOREIGN KEY (id_livro) REFERENCES livros(id_book)
+    FOREIGN KEY (id_livro) REFERENCES livros(id_livro)
 );

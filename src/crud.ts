@@ -1,6 +1,7 @@
 import db from './database';
+import { ILivros, ILocacoes, IUsers } from './types';
 
-type QueryCallback = (err: Error | null, rows: any[]) => void;
+type QueryCallback = (err: Error | null, rows: any) => void;
 interface IUpdateLivros {
   titulo: string;
   isbn: string;
@@ -9,18 +10,43 @@ interface IUpdateLivros {
 }
 
 // POST
-export const createItems = (callback: QueryCallback) => {
+export const createLocacoes = (items: ILocacoes, callback: QueryCallback) => {
   const sql = `
        INSERT INTO locacoes (id_user, id_livro, status)
        VALUES (?, ?, ?)
      `;
-  db.all(sql, [], callback);
+  db.run(sql, [items?.id_user, items?.id_livro, items?.status], callback);
+};
+
+export const createLivros = (items: ILivros, callback: QueryCallback) => {
+  const sql = `
+       INSERT INTO livros (titulo, isbn, edicao, ano)
+       VALUES (?, ?, ?, ?)
+     `;
+  db.run(sql, [items?.titulo, items?.isbn, items?.edicao, items?.ano], function (err) {
+    callback(err, { lastID: this.lastID });
+  });
+};
+
+export const createUsers = (items: IUsers, callback: QueryCallback) => {
+  const sql = `
+       INSERT INTO users (nome, cpf, senha)
+       VALUES (?, ?, ?)
+     `;
+  db.run(sql, [items?.nome, items?.cpf, items?.senha], function (err) {
+    callback(err, { lastID: this.lastID });
+  });
 };
 
 // GET
 export const readLivros = (callback: QueryCallback) => {
   const sql = 'SELECT * FROM livros';
   db.all(sql, [], callback);
+};
+
+export const readLivrosId = (id: number, callback: QueryCallback) => {
+  const sql = 'SELECT * FROM livros WHERE id_livro = ?';
+  db.all(sql, id, callback);
 };
 
 export const readLocacoes = (callback: QueryCallback) => {
@@ -34,7 +60,7 @@ export const readUsers = (callback: QueryCallback) => {
 };
 
 // PUT
-export const updateItems = (
+export const updateLivro = (
   id: number,
   items: IUpdateLivros,
   callback: QueryCallback,
@@ -42,7 +68,7 @@ export const updateItems = (
   const sql = `
        UPDATE livros
        SET titulo = ?, isbn = ?, edicao = ?, ano = ?
-       WHERE id_book = ?
+       WHERE id_livro = ?
      `;
   db.run(
     sql,
@@ -53,11 +79,16 @@ export const updateItems = (
 
 // DELETE
 export const deleteUsers = (id: number, callback: QueryCallback) => {
-  const sql = 'DELETE * FROM users WHERE id = ?';
+  const sql = 'DELETE * FROM users WHERE id_user = ?';
   db.run(sql, id, callback);
 };
 
 export const deleteLivros = (id: number, callback: QueryCallback) => {
-  const sql = 'DELETE * FROM livros WHERE id = ?';
+  const sql = 'DELETE * FROM livros WHERE id_livro = ?';
+  db.run(sql, id, callback);
+};
+
+export const deleteLocacoes = (id: number, callback: QueryCallback) => {
+  const sql = 'DELETE * FROM locacoes WHERE id_user = ?';
   db.run(sql, id, callback);
 };

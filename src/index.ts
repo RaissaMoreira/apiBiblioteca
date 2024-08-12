@@ -1,259 +1,167 @@
 import express from 'express';
-import db from './database';
+import { createLivros, createLocacoes, createUsers, deleteLivros, deleteLocacoes, deleteUsers, readLivros, readLivrosId, readLocacoes, readUsers, updateLivro } from './crud';
+import { ILivros } from './types';
+import { livroModel, livroUpdateModel, locModel, userModel } from './validations';
 
 const app = express();
 app.use(express.json());
 
-// // conectar ao banco de dados
-// let db: any;
+app.get('/bib/user', async (req, res) => {
+  readUsers((err, rows) => {
+    if (err) {
+      res.status(500).send({ mensagem: "Não foi possível buscar os usuários!" });
+    } else {
+      res.status(200).json(rows);
+    }
+  })
+});
 
-// // Função Autoexecutável Assíncrona
-// (async () => {
-//   try {
-//     // db = await sqliteConnection();
-//     db = await db;
-//     console.log('Conexão com o banco de dados estabelecida com sucesso.');
-//   } catch (error) {
-//     console.error('Erro ao conectar ao banco de dados:', error);
-//   }
-// })();
-
-// app.get('/bib/user', async (req, res) => {
-//   try {
-//     const users = await db?.all('SELECT * FROM users');
-//     res?.status(200)?.json(users);
-//   } catch (error) {
-//     res.status(500).send({ mensagem: 'Erro ao buscar usuários.' });
-//   }
-// });
-
-// app.get('/bib/livro', async (req, res) => {
-//   try {
-//     const livros = db?.all('SELECT * FROM livros', [], (err) => {
-//       if (err) {
-//         console.log('ERROR = ', err.message);
-//       } else {
-//         res?.status(200)?.json(livros);
-//       }
-//     });
-//   } catch (error) {
-//     res.status(500).send({ mensagem: 'Erro ao buscar livros.', error });
-//   }
-// });
 app.get('/bib/livro', async (req, res) => {
-  try {
-    db.all('SELECT * FROM livros', [], (err: any, rows: any) => {
-      if (err) {
-        res.status(500).send({ mensagem: err.message });
-      } else {
-        res.status(200).json(rows);
-      }
+  readLivros((err, rows) => {
+    if (err) {
+      res.status(500).send({ mensagem: "Não foi possível buscar os livros!" });
+    } else {
+      res.status(200).json(rows);
+    }
+  })
+});
+
+app.get('/bib/livro/:id', async (req, res) => {
+  const id = Number(req.params.id);
+
+  readLivrosId(id, (err, rows) => {
+    if (err) {
+      res.status(500).send({ mensagem: "Não foi possível encontrar o livro!" });
+    } else {
+      res.status(200).json(rows);
+    }
+  })
+});
+
+app.get('/bib/locar', async (req, res) => {
+  readLocacoes((err, rows) => {
+    if (err) {
+      res.status(500).send({ mensagem: "Não foi possível buscar as locações!" });
+    } else {
+      res.status(200).json(rows);
+    }
+  })
+});
+
+app.put('/bib/livro/:id', async (req, res) => {
+  const id = Number(req.params.id);
+  const livroAlterado: ILivros = req.body;
+  const { error } = livroUpdateModel?.validate(livroAlterado);
+  
+  if (error) {
+    return res.status(400).send({
+      mens: error.details[0].message,
     });
-  } catch (error) {
-    res.status(500).send({ mensagem: 'Erro ao buscar livros.', error });
   }
+
+  updateLivro(id, livroAlterado, (error) => {
+    if (error) {
+      res.status(500).send({ mensagem: 'Erro ao atualizar o livro.' });
+    }
+    
+    res.status(200).send({ mensagem: 'Livro atualizado com sucesso.' });
+  })
 });
 
-// app.get('/bib/livro/:id', async (req, res) => {
-//   const id = Number(req.params.id);
-//   try {
-//     const livro = await db?.get('SELECT * FROM livros WHERE id_book = ?', id);
-//     // const livro = livros?.find((item) => item?.id_book === id);
+app.delete('/bib/user/:id', async (req, res) => {
+  const id = Number(req.params.id);
 
-//     if (!livro) {
-//       return res?.status(404)?.send({
-//         mensagem: 'Não existe um livro para o ID informado!',
-//       });
-//     }
+  deleteUsers(id, (err) => {
+    if (err) {
+      res.status(500).send({ mensagem: 'Erro ao excluir o usuário.' });
+    }
+    
+    res.status(200).send({ mensagem: 'Usuário excluído com sucesso.' });
+  });
+});
 
-//     res?.status(200)?.json(livro);
-//   } catch (error) {
-//     res.status(500).send({ mensagem: 'Erro ao buscar livro.' });
-//   }
-// });
+app.delete('/bib/locar/:id', async (req, res) => {
+  const id = Number(req.params.id);
 
-// app.get('/bib/locar', async (req, res) => {
-//   try {
-//     const locacoes = await db?.all('SELECT * FROM locacoes');
-//     const newListLoc = await Promise.all(
-//       locacoes?.map(async (loc: ILocacoes) => {
-//         const userName = await db?.get(
-//           'SELECT nome FROM user WHERE id_user = ?',
-//           loc?.id_user,
-//         );
-//         const bookName = await db?.get(
-//           'SELECT TITULO FROM livros WHERE id_book = ?',
-//           loc?.id_livro,
-//         );
-//         // const userName = users?.find((user) => user?.id_user == loc?.id_user);
-//         // const bookName = livros?.find((livro) => livro?.id_book == loc?.id_livro);
+  deleteLocacoes(id, (err) => {
+    if (err) {
+      res.status(500).send({ mensagem: 'Erro ao excluir o usuário.' });
+    }
+    
+    res.status(200).send({ mensagem: 'Usuário excluído com sucesso.' });
+  });
+});
 
-//         return {
-//           id_user: loc?.id_user,
-//           nome_usuario: userName ? userName?.nome : 'Usuário não encontrado',
-//           id_livro: loc?.id_livro,
-//           titulo_livro: bookName ? bookName?.titulo : 'Livro não encontrado',
-//           status: loc?.status,
-//         };
-//       }),
-//     );
+app.delete('/bib/livro/:id', async (req, res) => {
+  const id = Number(req.params.id);
 
-//     res.status(200).json(newListLoc);
-//   } catch (error) {
-//     res.status(500).send({ mensagem: 'Erro ao buscar locações.' });
-//   }
-// });
+  deleteLivros(id, (err) => {
+    if (err) {
+      res.status(500).send({ mensagem: 'Erro ao excluir o livro.' });
+    }
+    
+    res.status(200).send({ mensagem: 'Usuário excluído com sucesso.' });
+  });
+});
 
-// app.put('/bib/livro/:id', async (req, res) => {
-//   const id = Number(req.params.id);
-//   const livroAlterado: ILivros = req.body;
+app.post('/bib/user', async (req, res) => {
+  const newUser = req.body;
+  const { error } = userModel?.validate(newUser);
+  
+  if (error) {
+    return res.status(400).send({
+      mens: error.details[0].message,
+    });
+  }
 
-//   const { error } = livroUpdateModel?.validate(livroAlterado);
-//   if (error) {
-//     return res.status(400).send({
-//       mens: error.details[0].message,
-//     });
-//   }
+  createUsers(newUser, (err, rows) => {
+    if (err) {
+      res.status(500).send({ mensagem: 'Erro ao criar o usuário.' });
+    }
+    
+    newUser.id_user = rows?.lastID;
+    res.status(201).json(newUser);
+  });
+});
 
-//   // let livro = livros?.find((item: ILivros) => item?.id_book === id);
-//   // if (!livro) {
-//   //   return res?.status(404)?.send({
-//   //     mensagem: 'Não existe um livro para o ID informado!',
-//   //   });
-//   // }
-//   // const newLivros = livros?.map((el) =>
-//   //   el?.id_book === id ? livroAlterado : el,
-//   // );
-//   // res?.status(200)?.json(newLivros);
-
-//   try {
-//     await db.run(
-//       `
-//       UPDATE livros
-//       SET titulo = ?, isbn = ?, edicao = ?, ano = ?
-//       WHERE id_book = ?
-//     `,
-//       [
-//         livroAlterado.titulo,
-//         livroAlterado.isbn,
-//         livroAlterado.edicao,
-//         livroAlterado.ano,
-//         id,
-//       ],
-//     );
-
-//     res.status(200).json(livroAlterado);
-//   } catch (error) {
-//     res.status(500).send({ mensagem: 'Erro ao atualizar o livro.' });
-//   }
-// });
-// app.delete('/bib/user/:id', async (req, res) => {
-//   const id = Number(req.params.id);
-//   try {
-//     const userToRemove = await db?.run(
-//       'DELETE FROM users WHERE id_user = ?',
-//       id,
-//     );
-
-//     if (userToRemove?.changes === 0) {
-//       return res.status(404).send({
-//         mensagem: 'Usuário não encontrado para o ID informado!',
-//       });
-//     }
-
-//     res.status(200).send({ mensagem: 'Usuário excluído com sucesso.' });
-//   } catch (error) {
-//     res.status(500).send({ mensagem: 'Erro ao excluir o usuário.' });
-//   }
-//   // const userIndice = users?.findIndex((user: IUsers) => user?.id_user === id);
-
-//   // if (userIndice < 0) {
-//   //   return res?.status(404)?.send({
-//   //     mensagem: 'Não existe um usuário para o ID informado!',
-//   //   });
-//   // }
-
-//   // const removerUsuario = users?.splice(userIndice, 1);
-//   // res?.status(200)?.json(removerUsuario);
-// });
-// app.post('/bib/user', async (req, res) => {
-//   const newUser = req.body;
-
-//   const { error } = userModel?.validate(newUser);
-//   if (error) {
-//     return res.status(400).send({
-//       mens: error.details[0].message,
-//     });
-//   }
-
-//   try {
-//     const result = await db.run(
-//       `
-//       INSERT INTO users (nome, cpf, senha)
-//       VALUES (?, ?, ?)
-//     `,
-//       [newUser.nome, newUser.cpf, newUser.senha],
-//     );
-
-//     newUser.id_user = result.lastID;
-//     res.status(201).json(newUser);
-//   } catch (error) {
-//     res.status(500).send({ mensagem: 'Erro ao criar o usuário.' });
-//   }
-// });
 app.post('/bib/livro', async (req, res) => {
-  // const newBook = req.body;
-
-  // const { error } = livroModel?.validate(newBook);
-  // if (error) {
-  //   return res.status(400).send({
-  //     mens: error.details?.[0].message,
-  //   });
-  // }
-
-  try {
-    const sql = `INSERT INTO livros (titulo, isbn, edicao, ano) VALUES (?, ?, ?, ?)`;
-
-    db.run(
-      sql,
-      ['O Senhor dos Anéis', '978-3-16-148410-0', '1ª Edição', '1954'],
-      (err) => {
-        if (err) {
-          console.log('ERROR = ', err.message);
-        } else {
-          console.log(`Livro inserido`, err);
-        }
-      },
-    );
-    res.status(201).json({ success: true });
-  } catch (error) {
-    res.status(500).send({ mensagem: 'Erro ao criar o livro.' });
+  const newBook = req.body;
+  const { error } = livroModel?.validate(newBook);
+  
+  if (error) {
+    return res.status(400).send({
+      mens: error.details?.[0].message,
+    });
   }
+
+  createLivros(newBook, (err, rows) => {
+    if (err) {
+      res.status(500).send({ mensagem: 'Erro ao criar o livro.' });
+    }
+    
+    newBook.id_livro = rows?.lastID;
+    res.status(201).json(newBook);
+  });
 });
 
-// app.post('/bib/locar', async (req, res) => {
-//   const newLoc = req.body;
+app.post('/bib/locar', async (req, res) => {
+  const newLoc = req.body;
+  const { error } = locModel?.validate(newLoc);
 
-//   const { error } = locModel?.validate(newLoc);
-//   if (error) {
-//     return res.status(400).send({
-//       mens: error.details[0].message,
-//     });
-//   }
+  if (error) {
+    return res.status(400).send({
+      mens: error.details[0].message,
+    });
+  }
 
-//   try {
-//     await db.run(
-//       `
-//       INSERT INTO locacoes (id_user, id_livro, status)
-//       VALUES (?, ?, ?)
-//     `,
-//       [newLoc.id_user, newLoc.id_livro, newLoc.status],
-//     );
-
-//     res.status(201).json(newLoc);
-//   } catch (error) {
-//     res.status(500).send({ mensagem: 'Erro ao criar a locação.' });
-//   }
-// });
+  createLocacoes(newLoc, (err, rows) => {
+    if (err) {
+      res.status(500).send({ mensagem: 'Erro ao criar a locação.' });
+    }
+    
+    newLoc.id_user = rows?.lastID;
+    res.status(201).json(newLoc);
+  });
+});
 
 app.listen(3333, () => console.log('BIBLIOTECA - API WEB executando'));

@@ -8,7 +8,7 @@ export const livroUpdateModel = Joi.object({
 });
 
 export const livroModel = Joi.object({
-  id_book: Joi.number().integer().required(),
+  // id_livro: Joi.number().integer().required(),
   titulo: Joi.string().min(3).required(),
   isbn: Joi.string().required(),
   edicao: Joi.string().required(),
@@ -16,7 +16,7 @@ export const livroModel = Joi.object({
 });
 
 export const userModel = Joi.object({
-  id_user: Joi.number().integer().required(),
+  // id_user: Joi.number().integer().required(),
   nome: Joi.string().min(3).required(),
   cpf: Joi.string()
     .length(11)

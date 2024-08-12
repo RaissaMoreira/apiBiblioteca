@@ -1,5 +1,5 @@
 export interface ILivros {
-    id_book: number;
+    id_livro: number;
     titulo: string;
     isbn: string;
     edicao: string;
